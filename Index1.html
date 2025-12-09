@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <title>TV4WAP LIVE4WAP - Smart Duration Matches</title>
+  <style>
+    /* CSS STYLES */
+    body {
+      margin: 0 16px 0 10px;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #000;
+      color: #E0E0E0;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    #loading-message {
+      text-align: center;
+      margin-top: 50px;
+      font-size: 16px;
+      color: #ccc;
+    }
+
+
+    /* --- STATUS BADGE --- */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-live {
+      background-color: #dc2626;
+      color: white;
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-upcoming {
+      background-color: #f59e0b;
+      color: black;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    /* --- MATCH CARD STYLES --- */
+    .match-card-item {
+      min-width: 320px;
+      flex-shrink: 0;
+    }
+
+    .card {
+      background: #111111;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.2s, transform 0.2s;
+      width: 100%;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    .card:hover {
+      background-color: #202020;
+      transform: translateY(-2px);
+    }
+
+    .des {
+      font-size: 14px;
+      color: #ccc;
+      margin-bottom: 10px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .card-des {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .team-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 120px;
+    }
+
+    .t1,
+    .t2 {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 50%;
+      background-color: #f0f0f0;
+      padding: 4px;
+      border: 2px solid gold;
+      margin-bottom: 5px;
+    }
+
+    .team-name {
+      font-size: 14px;
+      font-weight: bold;
+      color: #fff;
+      text-align: center;
+      margin-top: 5px;
+      max-width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .vs {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      margin: 0 10px;
+    }
+
+    /* Wrapper for time and timer */
+    .time-wrapper {
+      margin-top: 15px;
+      display: block;
+      text-align: center;
+    }
+
+    .start-time-text {
+      color: #ccc;
+      font-size: 12px;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .timer-display {
+      color: gold;
+      font-size: 14px;
+      font-weight: bold;
+      display: block;
+    }
+
+    .live-timer {
+      color: #dc2626;
+    }
+
+    /* Duration Info */
+    .duration-info {
+      font-size: 11px;
+      color: #888;
+      margin-top: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .duration-icon {
+      font-size: 12px;
+    }
+
+    /* Video Format Badge */
+    .format-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: bold;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    .m3u8-badge {
+      background-color: #4f46e5;
+      color: white;
+    }
+
+    .mpd-badge {
+      background-color: #059669;
+      color: white;
+    }
+
+    /* Stream Quality Info */
+    .quality-info {
+      font-size: 11px;
+      color: #60a5fa;
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .quality-icon {
+      font-size: 12px;
+    }
+
+    /* --- MATCH GROUP SEPARATORS --- */
+    .match-group {
+      display: flex;
+  gap: 15px;
+    }
+
+    .group-header {
+      font-size: 18px;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid;
+      display: flex;
+      align-items: center;
+       display: none !important;
+    }
+
+    .group-icon {
+      margin-right: 10px;
+      font-size: 20px;
+    }
+
+    .live-header {
+      border-color: #dc2626;
+    }
+
+    .upcoming-header {
+      border-color: #f59e0b;
+    }
+
+    /* --- PLAYER OVERLAY STYLES --- */
+    #player-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      z-index: 1000;
+      display: none;
+      overflow: hidden;
+    }
+
+    #player-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    #close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1001;
+      background: rgba(255, 255, 255, 0.3);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 30px;
+      text-align: center;
+      transition: background 0.3s;
+    }
+
+    #close-btn:hover {
+      background: rgba(255, 0, 0, 0.7);
+    }
+
+    /* Stream Selector */
+    .stream-selector {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 8px 0;
+      flex-wrap: wrap;
+    }
+
+    .stream-btn {
+      padding: 6px 12px;
+      background: #374151;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .stream-btn:hover {
+      background: #4b5563;
+    }
+
+    .stream-btn.active {
+      background: #3b82f6;
+    }
+
+    .stream-icon {
+      font-size: 14px;
+    }
+
+    /* --- OPEN SITE BUTTON (styled) --- */
+    .open-site-btn {
+      display: inline-block;
+      background: linear-gradient(90deg, #fff, #2962ff 70%);
+      color: #000;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 7px;
+      border: none;
+      text-decoration: none;
+      font-size: 13px;
+      box-shadow: 0 6px 18px rgba(175, 0, 45, 0.25);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .open-site-btn:hover {
+      background: linear-gradient(90deg, #2962ff, #fff 70%);
+      transform: translateY(-2px);
+      opacity: 0.95;
+    }
+
+    .open-site-btn .link-icon {
+      font-size: 14px;
+    }
+
+    .open-site-btn.hidden {
+      display: none !important;
+    }
+
+    /* Error Message */
+    .error-message {
+      color: #ff6b6b;
+      font-size: 12px;
+      margin-top: 5px;
+      text-align: center;
+      display: none;
+      background: rgba(255, 107, 107, 0.1);
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 107, 107, 0.3);
+    }
+
+    /* No matches message */
+    .no-matches {
+      text-align: center;
+      padding: 30px;
+      color: #888;
+      font-style: italic;
+      background: #1e293b;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+    
+    /* ✅ Horizontal Scroll Container */
+#matches-container {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  padding-bottom: 10px;
+}
+
+/* ✅ Each match card fixed width for horizontal scroll */
+.match-group {
+  display: flex;
+  gap: 15px;
+}
+
+.match-card-item {
+  min-width: 320px;   /* mobile friendly */
+  flex-shrink: 0;
+}
+
+/* ✅ Scrollbar styling (optional but clean) */
+#matches-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+#matches-container::-webkit-scrollbar-thumb {
+  background: #2962ff;
+  border-radius: 10px;
+}
+
+#matches-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+    @media (max-width: 600px) {
+      body {
+        padding: 8px;
+        margin: 0;
+      }
+      
+      .team-container {
+        width: 100px;
+      }
+      
+      .t1,
+      .t2 {
+        width: 50px;
+        height: 50px;
+      }
+      
+      .vs {
+        width: 50px;
+        height: 50px;
+      }
+      
+      .team-name {
+        font-size: 12px;
+        max-width: 80px;
+      }
+      
+      .group-header {
+        font-size: 16px;
+      }
+      
+      .status-badge {
+        font-size: 10px;
+        padding: 3px 8px;
+      }
+      
+      .duration-info {
+        font-size: 10px;
+      }
+      
+      .stream-selector {
+        gap: 5px;
+      }
+      
+      .stream-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+
+  <div id="loading-message">Loading match data...</div>
+
+  <!-- Single matches container for live and upcoming only -->
+  <div id="matches-container"></div>
+
+  <div id="player-overlay">
+    <button id="close-btn" onclick="closePlayer()">X</button>
+    <iframe id="player-iframe" allow="autoplay; fullscreen; picture-in-picture"></iframe>
+  </div>
+
+  <script>
+    const DATA_URL = 'https://raw.githubusercontent.com/filmyfly4wap/ipl/refs/heads/main/ipl.json';
+    const container = document.getElementById('matches-container');
+    const loadingMessage = document.getElementById('loading-message');
+    const playerOverlay = document.getElementById('player-overlay');
+    const playerIframe = document.getElementById('player-iframe');
+    let countdownInterval;
+    let allMatches = [];
+    
+    // Default logo placeholder
+    const DEFAULT_LOGO = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRVScOHhjuxyM-bZpfN6mEM6Sg6L_ThbQSECFR2JhiZlt4CcO_72hRv2M&s=10';
+
+    // Status configuration - Only LIVE and UPCOMING
+    const STATUS_CONFIG = {
+      live: {
+        badgeClass:'status-live',
+        title: 'LIVE MATCHES',
+        
+        icon:'<i class="fa fa-circle"></i>',
+        timerColor: '#dc2626'
+      },
+      upcoming: {
+        badgeClass: 'status-upcoming',
+        icon: '<i class="fa fa-hourglass-half"></i>',
+        title: 'UPCOMING MATCHES',
+        timerColor: 'gold',
+        show: true
+      }
+    };
+
+    // Default duration if not specified in JSON
+    const DEFAULT_DURATION_HOURS = 8;
+
+    // Video player configuration
+    const PLAYER_CONFIG = {
+      m3u8: {
+        icon: '🎬',
+        badge: 'm3u8-badge',
+        name: 'M3U8'
+      },
+      mpd: {
+        icon: '📺',
+        badge: 'mpd-badge',
+        name: 'MPD'
+      }
+    };
+
+    // --- Player Control Functions ---
+    function openPlayer(match) {
+      const streamURL =
+        match.adfree_url ||
+        match.dai_url ||
+        match.m3u8 ||
+        match.mpd ||
+        "";
+
+      if (!streamURL) {
+        alert("Stream URL not available");
+        return;
+      }
+
+      playerIframe.src = streamURL;
+      playerOverlay.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closePlayer() {
+      playerIframe.src = '';
+      playerOverlay.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    // Modified card click handler
+    function cardClick(match, status) {
+      // For upcoming matches, show error message
+      if (status === 'upcoming') {
+        const errorElement = document.getElementById(`error-${match.match_id}`);
+        if (errorElement) {
+          errorElement.style.display = 'block';
+          errorElement.textContent = 'Match is not live yet! Please wait for the match to start.';
+          
+          // Hide error after 3 seconds
+          setTimeout(() => {
+            errorElement.style.display = 'none';
+          }, 3000);
+        }
+        return;
+      }
+      
+      // For live matches, open the button URL if available
+      if (status === 'live' && match.button) {
+        try {
+          const url = String(match.button).trim();
+          if (url && url.length > 0) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+            return;
+          }
+        } catch (e) {
+          console.error('Error opening URL from cardClick:', e);
+        }
+      }
+      
+      // Fallback: open player
+      openPlayer(match);
+    }
+    
+    function getStatusImage(status) {
+      return (status && status.toUpperCase() === 'LIVE') ?
+        'https://media.tenor.com/33gJyOCSrIYAAAAj/live.gif' :
+        'https://media.tenor.com/7b7fQh48y08AAAAj/vs-versus.gif';
+    }
+
+    function parseStartTime(startTimeStr) {
+      try {
+        const parts = startTimeStr.split(' ');
+        if (parts.length !== 3) return NaN;
+
+        const [time, ampm, date] = parts;
+        const [HH, MM, SS] = time.split(':').map(n => parseInt(n));
+        const [DD, MM_date, YYYY] = date.split('-').map(n => parseInt(n));
+
+        let hours = HH;
+        if (ampm === 'PM' && hours < 12) {
+          hours += 12;
+        } else if (ampm === 'AM' && hours === 12) {
+          hours = 0;
+        }
+
+        if (isNaN(hours) || isNaN(MM) || isNaN(SS) || isNaN(DD) || isNaN(MM_date) || isNaN(YYYY)) {
+          return NaN;
+        }
+
+        const dateObj = new Date(YYYY, MM_date - 1, DD, hours, MM, SS);
+        if (isNaN(dateObj.getTime())) return NaN;
+
+        return dateObj.getTime();
+      } catch (e) {
+        console.error("Parsing failed for:", startTimeStr, e);
+        return NaN;
+      }
+    }
+
+    // Format time difference with duration consideration
+    function formatTimeDifference(startTimeStr, durationHours = DEFAULT_DURATION_HOURS) {
+      const matchTime = parseStartTime(startTimeStr);
+      if (isNaN(matchTime)) return 'INVALID';
+
+      const now = new Date().getTime();
+      const difference = matchTime - now;
+
+      if (difference < 0) {
+        const hoursPassed = Math.abs(difference) / (1000 * 60 * 60);
+        // Use durationHours from JSON, fallback to default
+        if (hoursPassed > durationHours) {
+          return 'COMPLETED';
+        }
+        return 'LIVE';
+      }
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      let timeParts = [];
+      if (days > 0) timeParts.push(`${days}d`);
+      if (hours > 0 || days > 0) timeParts.push(`${hours}h`);
+      if (minutes > 0 || hours > 0 || days > 0) timeParts.push(`${minutes}m`);
+      timeParts.push(`${seconds}s`);
+
+      return timeParts.slice(0, 3).join(' ');
+    }
+
+    function formatStartTime(startTimeStr) {
+      const timestamp = parseStartTime(startTimeStr);
+      if (isNaN(timestamp)) return 'Invalid Date/Time';
+
+      const date = new Date(timestamp);
+      const time = date.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      const datePart = date.toLocaleDateString('en-IN', {
+        month: 'short',
+        day: 'numeric'
+      });
+
+      return `${datePart}, ${time}`;
+    }
+
+    // Get video format from URL
+    function getVideoFormat(url) {
+      if (!url) return null;
+      
+      if (url.toLowerCase().endsWith('.m3u8') || url.includes('.m3u8?')) {
+        return 'm3u8';
+      } else if (url.toLowerCase().endsWith('.mpd') || url.includes('.mpd?')) {
+        return 'mpd';
+      }
+      return null;
+    }
+
+    // Get quality from URL or stream object
+    function getStreamQuality(stream) {
+      if (typeof stream === 'string') {
+        // If stream is a string URL, check for quality indicators
+        const url = stream.toLowerCase();
+        if (url.includes('1080')) return '1080p';
+        if (url.includes('720')) return '720p';
+        if (url.includes('480')) return '480p';
+        if (url.includes('360')) return '360p';
+        return 'HD';
+      } else if (stream && stream.quality) {
+        // If stream is an object with quality property
+        return stream.quality;
+      }
+      return 'Auto';
+    }
+
+    // Determine match status with duration
+    function getMatchStatus(match) {
+      // Get duration from match data, use default if not specified
+      const durationHours = match.durationHours || DEFAULT_DURATION_HOURS;
+      const timeDiff = formatTimeDifference(match.startTime, durationHours);
+      
+      if (timeDiff === 'LIVE') return 'live';
+      if (timeDiff === 'COMPLETED') return 'completed';
+      if (timeDiff !== 'INVALID' && timeDiff !== 'LIVE' && timeDiff !== 'COMPLETED') return 'upcoming';
+      
+      return 'unknown';
+    }
+
+    // Filter and group matches - only show LIVE and UPCOMING
+    function filterAndGroupMatches(matches) {
+      const groups = {
+        live: [],
+        upcoming: []
+      };
+      
+      matches.forEach(match => {
+        const status = getMatchStatus(match);
+        if (status === 'live') {
+          groups.live.push(match);
+        } else if (status === 'upcoming') {
+          groups.upcoming.push(match);
+        }
+        // Completed matches are ignored (not added to any group)
+      });
+      
+      // Sort upcoming matches by time (soonest first)
+      groups.upcoming.sort((a, b) => parseStartTime(a.startTime) - parseStartTime(b.startTime));
+      
+      return groups;
+    }
+
+    // Generate stream selector HTML
+    function generateStreamSelector(match) {
+      const streams = [];
+      
+      // Check for videoStreams array
+      if (match.videoStreams && Array.isArray(match.videoStreams)) {
+        match.videoStreams.forEach((stream, index) => {
+          if (typeof stream === 'string') {
+            streams.push({
+              url: stream,
+              format: getVideoFormat(stream),
+              quality: getStreamQuality(stream),
+              label: `Stream ${index + 1}`
+            });
+          } else if (stream && stream.url) {
+            streams.push({
+              url: stream.url,
+              format: getVideoFormat(stream.url),
+              quality: stream.quality || getStreamQuality(stream.url),
+              label: stream.label || `Stream ${index + 1}`
+            });
+          }
+        });
+      }
+      
+      // Check for single stream URL (backward compatibility)
+      if (match.streamUrl && !match.videoStreams) {
+        streams.push({
+          url: match.streamUrl,
+          format: getVideoFormat(match.streamUrl),
+          quality: getStreamQuality(match.streamUrl),
+          label: 'Main Stream'
+        });
+      }
+      
+      // Check for multiple stream formats (alternative structure)
+      if (match.m3u8) {
+        streams.push({
+          url: match.m3u8,
+          format: 'm3u8',
+          quality: getStreamQuality(match.m3u8),
+          label: 'M3U8 Stream'
+        });
+      }
+      
+      if (match.mpd) {
+        streams.push({
+          url: match.mpd,
+          format: 'mpd',
+          quality: getStreamQuality(match.mpd),
+          label: 'MPD Stream'
+        });
+      }
+      
+      if (streams.length === 0) {
+        return '';
+      }
+      
+      let html = '<div class="stream-selector">';
+      
+      streams.forEach((stream, index) => {
+        const config = PLAYER_CONFIG[stream.format] || { icon: '📡', name: 'Stream' };
+        const isActive = index === 0 ? 'active' : '';
+        
+        html += `
+          <button class="stream-btn ${isActive}" 
+                  onclick="openPlayer(${JSON.stringify(match)}); event.stopPropagation();"
+                  title="${stream.url}">
+            <span class="stream-icon">${config.icon}</span>
+            ${stream.label}
+            <span class="format-badge ${config.badge || ''}">${config.name}</span>
+          </button>
+        `;
+      });
+      
+      html += '</div>';
+      return html;
+    }
+
+    // Generate match card HTML
+    function generateMatchCard(match, status) {
+      const team1_logo = match.src || DEFAULT_LOGO;
+      const team2_logo = match.src_2 && match.src_2 !== 'Unavailable' ? match.src_2 : team1_logo;
+      const isLive = status === 'live';
+      const config = STATUS_CONFIG[status];
+      
+      // Get duration from match data or use default
+      const durationHours = match.durationHours || DEFAULT_DURATION_HOURS;
+      
+      const live_image = isLive ? getStatusImage('LIVE') : getStatusImage('UPCOMING');
+      const formattedTime = formatStartTime(match.startTime);
+      
+      let timerText = '';
+      if (isLive) {
+        timerText = 'LIVE NOW';
+      } else {
+        const timeDiff = formatTimeDifference(match.startTime, durationHours);
+        timerText = `Starts in: ${timeDiff}`;
+      }
+      
+      // Generate stream selector if streams available
+      const streamSelectorHTML = generateStreamSelector(match);
+      
+      // Check if there are any streams
+      const hasStreams = streamSelectorHTML !== '';
+      
+      // Generate button HTML only for live matches
+      let buttonHTML = '';
+      if (match.button && isLive) {
+        const url = String(match.button).trim();
+        if (url.length > 0) {
+          buttonHTML = `
+            <div style="text-align:center;">
+              <a href="${url}" target="_blank" rel="noopener noreferrer" class="open-site-btn" onclick="event.stopPropagation();">
+                <span class="link-icon"><i class="fa fa-play"></i> </span>
+                Watch Now
+              </a>
+            </div>
+          `;
+        }
+      }
+      
+      return `
+        <div class="match-card-item"
+             onclick="cardClickById('${match.match_id}', '${status}')"">
+          <div class="card">
+            <div class="status-badge ${config.badgeClass}">
+              ${config.icon} ${status.toUpperCase()}
+            </div>
+            
+            <p class="des">${match.title}</p>
+            
+            <div class="card-des">
+              <div class="team-container">
+                <img alt="${match.team_1}" class="t1" src="${team1_logo}" onerror="this.src='${DEFAULT_LOGO}'">
+                <div class="team-name">${match.team_1}</div>
+              </div>
+              
+              <img alt="${match.status}" class="vs" src="${live_image}">
+              
+              <div class="team-container">
+                <img alt="${match.team_2}" class="t2" src="${team2_logo}" onerror="this.src='${DEFAULT_LOGO}'">
+                <div class="team-name">${match.team_2}</div>
+              </div>
+            </div>
+            
+            <div class="time-wrapper">
+              <p class="start-time-text">Start Time: ${formattedTime}</p>
+              <p class="timer-display ${isLive ? 'live-timer' : ''}" id="timer-${match.match_id}" style="color: ${config.timerColor}">
+                ${timerText}
+              </p>
+              
+              ${streamSelectorHTML}
+              
+              ${buttonHTML}
+              
+              <div class="error-message" id="error-${match.match_id}"></div>
+              
+
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Generate group HTML
+    function generateGroupHTML(status, matches) {
+      const config = STATUS_CONFIG[status];
+      if (!matches || matches.length === 0) return '';
+      
+      return `
+        <div class="match-group" data-status="${status}">
+          <div class="group-header ${status}-header">
+            <span class="group-icon">${config.icon}</span>
+            ${config.title}
+          </div>
+          ${matches.map(match => generateMatchCard(match, status)).join('')}
+        </div>
+      `;
+    }
+
+    // Display only live and group-header live-headermatches
+    function displayLiveAndUpcomingMatches(groups) {
+      let html = '';
+      
+      // Show live matches first
+      html += generateGroupHTML('live', groups.live);
+      
+      // Show upcoming matches second
+      html += generateGroupHTML('upcoming', groups.upcoming);
+      
+      // If no matches at all
+      if (html === '') {
+        html = '<div class="no-matches">No live or upcoming matches available at the moment</div>';
+      }
+      
+      container.innerHTML = html;
+      loadingMessage.style.display = 'none';
+    }
+
+    // Start countdown for upcoming matches with duration support
+    function startCountdown() {
+      if (countdownInterval) clearInterval(countdownInterval);
+      
+      countdownInterval = setInterval(() => {
+        const now = new Date().getTime();
+        let needsUpdate = false;
+        
+        allMatches.forEach(match => {
+          const timerElement = document.getElementById(`timer-${match.match_id}`);
+          if (timerElement) {
+            const durationHours = match.durationHours || DEFAULT_DURATION_HOURS;
+            const timeDifference = formatTimeDifference(match.startTime, durationHours);
+            
+            // Check if status changed from upcoming to live
+            if (timeDifference === 'LIVE') {
+              // Check if match is currently shown as upcoming
+              const matchGroup = timerElement.closest('.match-group');
+              if (matchGroup && matchGroup.dataset.status === 'upcoming') {
+                needsUpdate = true;
+              }
+            }
+            
+            if (timeDifference === 'LIVE') {
+              timerElement.textContent = 'LIVE NOW';
+              timerElement.style.color = STATUS_CONFIG.live.timerColor;
+              timerElement.classList.add('live-timer');
+            } else if (timeDifference === 'COMPLETED') {
+              // If match becomes completed, it will be removed on next update
+              needsUpdate = true;
+            } else if (timeDifference !== 'INVALID' && timeDifference !== 'LIVE' && timeDifference !== 'COMPLETED') {
+              timerElement.textContent = `Starts in: ${timeDifference}`;
+              timerElement.style.color = STATUS_CONFIG.upcoming.timerColor;
+              timerElement.classList.remove('live-timer');
+            }
+          }
+        });
+        
+        // If matches changed status, regenerate the display
+        if (needsUpdate) {
+          setTimeout(() => {
+            const groups = filterAndGroupMatches(allMatches);
+            displayLiveAndUpcomingMatches(groups);
+          }, 1000);
+        }
+      }, 1000);
+    }
+
+    // Main function to fetch and process data
+    async function fetchData() {
+      try {
+        const response = await fetch(DATA_URL);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+
+        if (data && data.matches) {
+          allMatches = data.matches;
+          
+          // Log match info for debugging
+          console.log('Loaded matches with streams:');
+          allMatches.forEach((match, index) => {
+            const streams = [];
+            if (match.videoStreams) streams.push(`${match.videoStreams.length} streams`);
+            if (match.streamUrl) streams.push('streamUrl');
+            if (match.m3u8) streams.push('m3u8');
+            if (match.mpd) streams.push('mpd');
+            
+            console.log(`${index + 1}. ${match.title} - Duration: ${match.durationHours || DEFAULT_DURATION_HOURS}h - Streams: ${streams.join(', ') || 'None'} - Button: ${match.button ? 'Yes' : 'No'}`);
+          });
+          
+          // Filter and group matches (only live and upcoming)
+          const groups = filterAndGroupMatches(allMatches);
+          
+          // Display only live and upcoming matches
+          displayLiveAndUpcomingMatches(groups);
+          
+          // Start countdown timer
+          startCountdown();
+        } else {
+          throw new Error("Invalid data structure received.");
+        }
+      } catch (error) {
+        console.error("Error fetching match data:", error);
+        loadingMessage.textContent = `Error loading matches. Please check the network or URL.`;
+      }
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', fetchData);
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (countdownInterval)   clearInterval(countdownInterval);
+    });
+    
+    
+    
+  function getMatchById(matchId) {
+    return allMatches.find(m => String(m.match_id) === String(matchId));
+  }
+
+
+  function cardClickById(matchId, status) {
+    const match = getMatchById(matchId);
+    if (!match) return;
+
+    // ✅ Upcoming match → ERROR ALERT
+    if (status === 'upcoming') {
+      alert('Match is not live yet! Please wait for the match to start.');
+      return;
+    }
+
+    // ✅ Live match → Button URL OPEN
+    if (status === 'live' && match.button) {
+      const url = String(match.button).trim();
+      if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+        return;
+      }
+    }
+
+    // ✅ Fallback → Player open
+    openPlayer(match);
+  }
+
+
+
+  </script>
+</body>
+</html>
