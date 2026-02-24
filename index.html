@@ -21,72 +21,6 @@
       box-sizing: border-box
     }
 
-    body {
-      background: #000;
-      color: #fff;
-      font-family: system-ui
-    }
-
-    .notice-bar {
-      background: #dc2626;
-      font-size: 12px;
-      padding: 5px 0;
-      font-weight: 700
-    }
-
-    .container {
-      max-width: 1100px;
-      margin: auto
-    }
-
-    .stream-header {
-      background: #111;
-      margin: 10px;
-      padding: 3px 15px;
-      border-radius: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center
-    }
-
-    .brand-info {
-      display: flex;
-      align-items: center;
-      gap: 10px
-    }
-
-    .brand-logo img {
-      width: 35px;
-      height: 35px;
-      border-radius: 50%
-    }
-
-    .stream-header h1 {
-      font-size: 16px;
-      font-weight: 700;
-      background: linear-gradient(to right, #fff, #888);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent
-    }
-
-    .live-badge {
-      background: rgba(239, 68, 68, .1);
-      color: #dc2626;
-      border: 1px solid rgba(239, 68, 68, .2);
-      padding: 2px 8px;
-      border-radius: 6px;
-      font-size: 10px;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 5px
-    }
-
-    .live-badge i {
-      font-size: .5rem;
-      animation: pulseRed 1.5s infinite
-    }
-
     @keyframes pulseRed {
       0% {
         transform: scale(.95);
@@ -105,8 +39,7 @@
     }
 
     .player-wrap {
-      margin: 10px;
-      border-radius: 5px;
+
       overflow: hidden
     }
 
@@ -163,85 +96,43 @@
       .watermark-logo {
         padding: 5px 8px;
       }
-      
+
       .watermark-logo img {
         width: 45px
+      }
     }
-    }
-
-    .btn-wrapper {
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 15px
-    }
-
-    .whatsApp-btn {
-      background: #25d366;
-      color: #fff;
-      text-decoration: none;
-      padding: 15px 20px;
-      border-radius: 14px;
-      font-weight: 700;
-      display: flex;
-      gap: 10px
-    }
-
-    .whatsApp-btn:hover {
-      background: #fff;
-      color: #25d366;
-    }
-
-
-    .refresh-text {
-      font-size: 12px;
-      color: #666
-    }
+    
+    
   </style>
+  
+    <style>
+
+
+  .shaka-seek-bar {
+    background-color: #C3C3C3 !important;
+    border-radius: 10px;
+  }
+  
+  .shaka-seek-bar-container input[type="range"]::-webkit-slider-thumb {
+  background-color: #2962ff !important; 
+}
+
+</style>
+
 </head>
-
 <body>
+  <div class="player-wrap">
+    <div class="shaka-video-container" id="playerBox">
 
-  <div class="notice-bar">
-    <marquee scrollamount="5">⚠️ Server slow hone par page refresh karein.
-      Latest updates ke liye WhatsApp Group Join karein.</marquee>
+      <div class="watermark-logo" id="wm">
+        <img src="https://i.postimg.cc/MTTS4nsH/createlive.png">
+      </div>
+
+      <video autoplay playsinline></video>
+    </div>
   </div>
-
-  <main class="container">
-
-    <div class="stream-header">
-      <div class="brand-info">
-        <div class="brand-logo"><img
-            src="https://i.postimg.cc/MTTS4nsH/createlive.png"></div>
-        <h1>cricketlive.site</h1>
-      </div>
-      <span class="live-badge"><i class="fa-solid fa-circle"></i> LIVE
-        NOW</span>
-    </div>
-
-    <div class="player-wrap">
-      <div class="shaka-video-container" id="playerBox">
-
-        <div class="watermark-logo" id="wm">
-          <img src="https://i.postimg.cc/MTTS4nsH/createlive.png">
-        </div>
-
-        <video autoplay playsinline></video>
-      </div>
-    </div>
-
-    <div class="btn-wrapper">
-      <a href="https://whatsapp.com/channel/0029VbBopnM4Y9lqDP2PsL08"
-        target="_blank" class="whatsApp-btn">
-        <i class="fa-brands fa-whatsapp"></i> JOIN WhatsApp Group
-      </a>
-      <p class="refresh-text">Agar video load nahi ho rahi toh <b>Browser
-          refresh</b> karein.</p>
-    </div>
-
   </main>
-
+  
   <script>
     const q = new URLSearchParams(location.search);
     const streamUrl = q.get("url");
