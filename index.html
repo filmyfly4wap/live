@@ -4,14 +4,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Live Cricket Stream</title>
+<title>Live Stream Player</title>
 
 <script src="https://cdn.jsdelivr.net/npm/shaka-player@4.16.2/dist/shaka-player.ui.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@4.16.2/dist/controls.css">
 
 <style>
-body{
+*{
 margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
 background:#000;
 overflow:hidden;
 }
@@ -29,10 +34,9 @@ object-fit:contain;
 
 .custom-watermark{
 position:absolute;
-z-index:40;
-pointer-events:none;
 top:65%;
 left:11%;
+pointer-events:none;
 }
 
 .custom-watermark img{
@@ -47,55 +51,46 @@ opacity:.8;
 <body>
 
 <div class="shaka-video-container" id="player-container">
+
 <video id="video" autoplay muted playsinline></video>
+
 <div class="custom-watermark">
 <img src="https://i.postimg.cc/SKhzQBJB/cricketlive.png">
 </div>
+
 </div>
 
 <script>
 
-const JSON_URL = "https://raw.githubusercontent.com/filmyfly4wap/mpd/refs/heads/main/mpd.json";
-const COOKIE_URL = "https://allrounder-live.pages.dev/api/cookie.json";
-
 function getParam(name){
-const url = new URL(window.location.href);
+const url=new URL(window.location.href);
 return url.searchParams.get(name);
 }
 
-async function initPlayer(){
+const streamUrl=getParam("url");
+const keyId=getParam("keyId");
+const key=getParam("key");
 
-const id = getParam("id");
-
-if(!id){
-alert("Channel ID Missing");
-return;
+if(!streamUrl){
+alert("Stream URL missing");
 }
 
-const json = await fetch(JSON_URL);
-const channels = await json.json();
+document.addEventListener("DOMContentLoaded",async()=>{
 
-const channel = channels.find(c => c.channel_id === id);
-
-if(!channel){
-alert("Channel Not Found");
-return;
-}
-
-const video = document.getElementById("video");
-const container = document.getElementById("player-container");
+const video=document.getElementById("video");
+const container=document.getElementById("player-container");
 
 shaka.polyfill.installAll();
 
 if(!shaka.Player.isBrowserSupported()){
-alert("Browser Not Supported");
+alert("Browser not supported");
 return;
 }
 
-const player = new shaka.Player();
+const player=new shaka.Player();
 await player.attach(video);
 
-const ui = new shaka.ui.Overlay(player,container,video);
+const ui=new shaka.ui.Overlay(player,container,video);
 
 ui.configure({
 controlPanelElements:[
@@ -105,43 +100,40 @@ controlPanelElements:[
 "quality",
 "mute",
 "fullscreen"
+"picture_in_picture"
 ]
 });
 
+if(keyId && key){
 player.configure({
 drm:{
 clearKeys:{
-[channel.keyId]:channel.key
+[keyId]:key
 }
 }
 });
-
-let cookieValue="";
-
-try{
-const response = await fetch(COOKIE_URL);
-const data = await response.json();
-cookieValue = data.cookie || "";
-}catch(e){}
+}
 
 player.getNetworkingEngine().registerRequestFilter((type,request)=>{
 
 request.headers["Referer"]="https://www.jiotv.com/";
 request.headers["User-Agent"]="playtv/7.1.5";
 
-if(cookieValue){
-request.headers["Cookie"]=cookieValue;
-}
-
 });
 
-await player.load(channel.channel_url);
+try{
+
+await player.load(streamUrl);
 
 video.play().catch(()=>{});
 
+}catch(e){
+
+console.error(e);
+
 }
 
-document.addEventListener("DOMContentLoaded",initPlayer);
+});
 
 </script>
 
