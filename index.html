@@ -1,138 +1,271 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Live Stream Player</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Star Hindi</title>
 
-<script src="https://cdn.jsdelivr.net/npm/shaka-player@4.16.2/dist/shaka-player.ui.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@4.16.2/dist/controls.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css" crossorigin="anonymous">
 
-<style>
-body{
-margin:0;
-background:#000;
-overflow:hidden;
-}
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      background: #000;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .shaka-video-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      object-fit: contain;
+    }
+    .shaka-spinner-container,
+    .shaka-spinner,
+    .shaka-spinner-svg {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+    }
 
-.shaka-video-container{
-position:fixed;
-inset:0;
-}
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      backdrop-filter: blur(6px);
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      animation: fadeIn .5s ease;
+    }
+    .modal.hidden { display: none !important; }
+    .modal-content {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 30px 25px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      color: #f3f4f6;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      backdrop-filter: blur(12px);
+      transform: scale(.95);
+      animation: scaleIn .4s ease forwards;
+    }
+    .modal-content h2 { font-size: 24px; font-weight: 700; color: #facc15; margin-bottom: 16px; }
+    .modal-content p { font-size: 16px; color: #d1d5db; margin-bottom: 24px; line-height: 1.5; }
+    .modal-content strong { color: #fff; }
+    .modal-content .btn { width: 100%; padding: 12px; font-size: 16px; border: none; border-radius: 12px; margin-bottom: 12px; cursor: pointer; transition: .3s; display: inline-block; }
+    #joinButton { background: linear-gradient(to right,#3b82f6,#06b6d4); color: #fff; font-weight: 500; }
+    #joinButton:hover { background: linear-gradient(to right,#2563eb,#0891b2); transform: scale(1.02); }
+    #closeButton { background: rgba(255,255,255,0.1); color: #f3f4f6; }
+    #closeButton:hover { background: rgba(255,255,255,0.15); transform: scale(1.02); }
 
-video{
-width:100%;
-height:100%;
-object-fit:contain;
-}
+    @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+    @keyframes scaleIn { to { transform: scale(1); opacity: 1 } }
+
+    /* Banner */
+    .tg-banner {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: linear-gradient(135deg, rgba(29,161,242,0.85), rgba(0,119,181,0.85));
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      z-index: 1000;
+      text-decoration: none;
+    }
+    .tg-banner img { width: 28px; height: 28px; margin-right: 10px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.8); display: block; }
+    .tg-banner span { font-size: 15px; font-weight: 600; letter-spacing: .4px; }
+
+    /* Chrome Only Modal */
+    #chromeModal .modal-content {
+      background: rgba(255, 0, 0, 0.1);
+      border: 1px solid rgba(255, 0, 0, 0.3);
+    }
+    #chromeModal h2 {
+      color: #f87171;
+    }
+  </style>
+  
+      <style>
+    .custom-watermark {
+      position: absolute;
+      z-index: 40;
+      pointer-events: none;
+      top: 65%;
+      left: 11%;
+      transform: translateY(-50%);
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.12);
+    }
+    
+    .custom-watermark img {
+      height: 52px;
+      width: 52px;
+      opacity: 80%;
+    }
+    
+    
+    @media (max-width: 700px) {
+      .custom-watermark {
+        font-size: 9px;
+        top: 58%;
+        left: 4%;
+      }
+      
+      .custom-watermark img {
+        height: 45px;
+        width: 45px;
+        opacity: 80%;
+      }
+    }
+
+
+
 </style>
 
+
+  
 </head>
 
 <body>
 
-<div class="shaka-video-container" id="player-container">
-<video id="video" autoplay muted playsinline></video>
-</div>
+  <div class="shaka-video-container" data-shaka-player>
+    <video autoplay playsinline preload="metadata"></video>
+  </div>
 
 <script>
 
+document.addEventListener('DOMContentLoaded', async () => {
+
 function getParam(name){
-const url=new URL(window.location.href);
-return url.searchParams.get(name);
+  const url = new URL(window.location.href);
+  return url.searchParams.get(name);
 }
 
-const streamUrl=getParam("url");
-const keyId=getParam("keyId");
-const key=getParam("key");
+const streamUrl = getParam("url");
+const keyId = getParam("keyId");
+const key = getParam("key");
 
-const COOKIE_URL="https://allrounder-live.pages.dev/api/cookie.json";
-
-document.addEventListener("DOMContentLoaded",async()=>{
-
-if(!streamUrl){
-alert("Stream URL missing");
-return;
-}
-
-const video=document.getElementById("video");
-const container=document.getElementById("player-container");
+const COOKIE_API = "https://allrounder-live.pages.dev/api/cookie.json";
 
 shaka.polyfill.installAll();
 
-if(!shaka.Player.isBrowserSupported()){
-alert("Browser not supported");
-return;
+if (!shaka.Player.isBrowserSupported()) {
+  console.error('Browser not supported');
+  return;
 }
 
-const player=new shaka.Player();
+const video = document.querySelector('video');
+const player = new shaka.Player();
 await player.attach(video);
 
-new shaka.ui.Overlay(player,container,video);
+const container = document.querySelector('.shaka-video-container');
+const ui = new shaka.ui.Overlay(player, container, video);
 
-player.configure({
-drm:{
-clearKeys:{
-[keyId]:key
-}
-}
+ui.configure({
+  controlPanelElements: [
+    'play_pause','time_and_duration','mute','volume',
+    'spacer','quality','fullscreen'
+  ],
+  volumeBarColors:{
+    base:'rgb(255,255,255,1)',
+    level:'rgb(63,107,255,1)'
+  },
+  seekBarColors:{
+    base:'rgba(255,255,255,1)',
+    buffered:'rgba(255,255,255,1)',
+    played:'rgb(63,107,255,1)'
+  }
 });
 
-let cookieValue="";
+let cookieHeader = "";
 
 try{
-
-const response=await fetch(COOKIE_URL,{cache:"no-store"});
-const data=await response.json();
-cookieValue=data.cookie || "";
-
+  const res = await fetch(COOKIE_API,{cache:"no-store"});
+  const data = await res.json();
+  cookieHeader = data.cookie || "";
 }catch(e){
-console.log("Cookie fetch failed");
+  console.log("Cookie fetch failed");
+}
+
+if(keyId && key){
+  player.configure({
+    drm:{
+      clearKeys:{
+        [keyId]:key
+      }
+    }
+  });
 }
 
 player.getNetworkingEngine().registerRequestFilter((type,request)=>{
 
-request.headers["Referer"]="https://www.jiotv.com/";
-request.headers["User-Agent"]="playtv/7.1.5";
+  request.headers["Referer"]="https://www.jiotv.com/";
+  request.headers["User-Agent"]="plaYtv/7.1.5 (Linux;Android 13)";
+  
+  if(cookieHeader){
+    request.headers["Cookie"]=cookieHeader;
 
-if(cookieValue){
+    let token=cookieHeader.startsWith("__hdnea__=")
+      ?cookieHeader.substring(10)
+      :cookieHeader;
 
-request.headers["Cookie"]=cookieValue;
+    if(
+      (type===shaka.net.NetworkingEngine.RequestType.MANIFEST ||
+       type===shaka.net.NetworkingEngine.RequestType.SEGMENT) &&
+       request.uris[0] && !request.uris[0].includes("__hdnea__")
+    ){
 
-let token=cookieValue.startsWith("__hdnea__=")
-?cookieValue.substring(10)
-:cookieValue;
+      const sep=request.uris[0].includes("?")?"&":"?";
+      request.uris[0]+=sep+"__hdnea__="+token;
 
-if(
-(type===shaka.net.NetworkingEngine.RequestType.MANIFEST ||
-type===shaka.net.NetworkingEngine.RequestType.SEGMENT)
-&& !request.uris[0].includes("__hdnea__")
-){
+    }
 
-const sep=request.uris[0].includes("?")?"&":"?";
-request.uris[0]+=sep+"__hdnea__="+token;
-
-}
-
-}
+  }
 
 });
 
 try{
 
-await player.load(streamUrl);
-video.play().catch(()=>{});
+  if(!streamUrl){
+    alert("Stream URL missing");
+    return;
+  }
+
+  await player.load(streamUrl);
+
+  video.play().catch(()=>{});
 
 }catch(e){
-
-console.error("Stream load error",e);
-
+  console.error("Load error:",e);
 }
 
 });
 
 </script>
-
+  
 </body>
 </html>
