@@ -37,75 +37,6 @@
       opacity: 0 !important;
     }
 
-    /* Modal */
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      backdrop-filter: blur(6px);
-      background: rgba(0,0,0,0.4);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      animation: fadeIn .5s ease;
-    }
-    .modal.hidden { display: none !important; }
-    .modal-content {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 20px;
-      padding: 30px 25px;
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-      color: #f3f4f6;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      backdrop-filter: blur(12px);
-      transform: scale(.95);
-      animation: scaleIn .4s ease forwards;
-    }
-    .modal-content h2 { font-size: 24px; font-weight: 700; color: #facc15; margin-bottom: 16px; }
-    .modal-content p { font-size: 16px; color: #d1d5db; margin-bottom: 24px; line-height: 1.5; }
-    .modal-content strong { color: #fff; }
-    .modal-content .btn { width: 100%; padding: 12px; font-size: 16px; border: none; border-radius: 12px; margin-bottom: 12px; cursor: pointer; transition: .3s; display: inline-block; }
-    #joinButton { background: linear-gradient(to right,#3b82f6,#06b6d4); color: #fff; font-weight: 500; }
-    #joinButton:hover { background: linear-gradient(to right,#2563eb,#0891b2); transform: scale(1.02); }
-    #closeButton { background: rgba(255,255,255,0.1); color: #f3f4f6; }
-    #closeButton:hover { background: rgba(255,255,255,0.15); transform: scale(1.02); }
-
-    @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-    @keyframes scaleIn { to { transform: scale(1); opacity: 1 } }
-
-    /* Banner */
-    .tg-banner {
-      position: absolute;
-      top: 16px;
-      left: 16px;
-      background: linear-gradient(135deg, rgba(29,161,242,0.85), rgba(0,119,181,0.85));
-      backdrop-filter: blur(8px);
-      border-radius: 12px;
-      padding: 10px 16px;
-      display: flex;
-      align-items: center;
-      color: #fff;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-      z-index: 1000;
-      text-decoration: none;
-    }
-    .tg-banner img { width: 28px; height: 28px; margin-right: 10px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.8); display: block; }
-    .tg-banner span { font-size: 15px; font-weight: 600; letter-spacing: .4px; }
-
-    /* Chrome Only Modal */
-    #chromeModal .modal-content {
-      background: rgba(255, 0, 0, 0.1);
-      border: 1px solid rgba(255, 0, 0, 0.3);
-    }
-    #chromeModal h2 {
-      color: #f87171;
-    }
   </style>
   
       <style>
@@ -154,6 +85,7 @@
 
   <div class="shaka-video-container" data-shaka-player>
     <video autoplay playsinline preload="metadata"></video>
+  <div class="custom-watermark"><img src="https://i.postimg.cc/SNjy16J7/cricketlive.png"></div>
   </div>
 
 <script>
@@ -266,6 +198,5 @@ try{
 });
 
 </script>
-  
 </body>
 </html>
