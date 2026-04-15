@@ -89,6 +89,7 @@
     <div class="custom-watermark"><img src="https://i.postimg.cc/SNjy16J7/cricketlive.png"></div>
   </div>
   
+
 <script>
   (async () => {
     
@@ -96,12 +97,15 @@
       return new URL(location.href).searchParams.get(name);
     }
     
-    /* -------- GET FROM URL -------- */
+    /* -------- PARAM -------- */
     const streamUrl = getParam("url");
     const keyId = getParam("keyId");
     const key = getParam("key");
     
-    /* अगर url नहीं मिला */
+    /* -------- COOKIE API (2 BACKUP) -------- */
+    const COOKIE_API_1 = "https://allrounder-live2.pages.dev/api/star-1-hindi.json";
+    const COOKIE_API_2 = "https://allrounder-live2.pages.dev/api/star-1.json";
+    
     if (!streamUrl) {
       alert("Stream URL missing");
       return;
@@ -119,7 +123,7 @@
     
     const ui = new shaka.ui.Overlay(player, container, video);
     
-    /* UI same */
+    /* UI SAME */
     ui.configure({
       addBigPlayButton: true,
       controlPanelElements: [
@@ -139,10 +143,67 @@
       });
     }
     
-    /* -------- HEADERS -------- */
+    /* -------- COOKIE FUNCTION -------- */
+    async function getCookie() {
+      
+      let cookie = "";
+      
+      /* TRY 1 */
+      try {
+        const res1 = await fetch(COOKIE_API_1, { cache: "no-store" });
+        const data1 = await res1.json();
+        cookie = data1.cookie || "";
+      } catch (e) {}
+      
+      /* TRY 2 (backup) */
+      if (!cookie) {
+        try {
+          const res2 = await fetch(COOKIE_API_2, { cache: "no-store" });
+          const data2 = await res2.json();
+          cookie = data2.cookie || "";
+        } catch (e) {}
+      }
+      
+      return cookie;
+    }
+    
+    /* CALL COOKIE */
+    const cookie = await getCookie();
+    
+    /* -------- REQUEST FILTER -------- */
     player.getNetworkingEngine().registerRequestFilter((type, req) => {
+      
       req.headers["Referer"] = "https://www.jiotv.com/";
       req.headers["User-Agent"] = "plaYtv/7.1.5 (Android)";
+      
+      if (cookie) {
+        
+        req.headers["Cookie"] = cookie;
+        
+        let token = cookie.startsWith("__hdnea__=") ?
+          cookie.slice(10) :
+          cookie;
+        
+        if (
+          (type === shaka.net.NetworkingEngine.RequestType.MANIFEST ||
+            type === shaka.net.NetworkingEngine.RequestType.SEGMENT) &&
+          !req.uris[0].includes("__hdnea__")
+        ) {
+          const sep = req.uris[0].includes("?") ? "&" : "?";
+          req.uris[0] += sep + "__hdnea__=" + token;
+        }
+        
+      }
+      
+    });
+    
+    /* -------- PLAYER CONFIG -------- */
+    player.configure({
+      streaming: {
+        lowLatencyMode: true,
+        bufferingGoal: 10,
+        rebufferingGoal: 2
+      }
     });
     
     /* -------- LOAD -------- */
@@ -150,10 +211,10 @@
       await player.load(streamUrl);
       video.play().catch(() => {});
     } catch (e) {
-      console.log("Load error", e);
+      console.error("LOAD ERROR:", e);
+      alert("Stream not working / expired cookie");
     }
     
-    /* UNMUTE */
     video.addEventListener("play", () => video.muted = false);
     
   })();
