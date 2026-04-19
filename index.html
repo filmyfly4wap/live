@@ -89,7 +89,6 @@
     <div class="custom-watermark"><img src="https://i.postimg.cc/SNjy16J7/cricketlive.png"></div>
   </div>
   
-
 <script>
   (async () => {
     
@@ -102,9 +101,13 @@
     const keyId = getParam("keyId");
     const key = getParam("key");
     
-    /* -------- COOKIE API (2 BACKUP) -------- */
-    const COOKIE_API_1 = "https://allrounder-live2.pages.dev/api/star-1-hindi.json";
-    const COOKIE_API_2 = "https://allrounder-live2.pages.dev/api/star-1.json";
+    /* -------- 4 COOKIE API -------- */
+    const COOKIE_APIS = [
+      "https://allrounder-live5.pages.dev/api/star-1-hindi.json",
+      "https://allrounderid2.pages.dev/api/star-1.json",
+      "https://allrounder-live4.pages.dev/api/cookie.json",
+      "https://your-backup3.com/cookie.json"
+    ];
     
     if (!streamUrl) {
       alert("Stream URL missing");
@@ -143,28 +146,25 @@
       });
     }
     
-    /* -------- COOKIE FUNCTION -------- */
+    /* -------- COOKIE FUNCTION (4 TRY) -------- */
     async function getCookie() {
       
-      let cookie = "";
-      
-      /* TRY 1 */
-      try {
-        const res1 = await fetch(COOKIE_API_1, { cache: "no-store" });
-        const data1 = await res1.json();
-        cookie = data1.cookie || "";
-      } catch (e) {}
-      
-      /* TRY 2 (backup) */
-      if (!cookie) {
+      for (let url of COOKIE_APIS) {
         try {
-          const res2 = await fetch(COOKIE_API_2, { cache: "no-store" });
-          const data2 = await res2.json();
-          cookie = data2.cookie || "";
-        } catch (e) {}
+          const res = await fetch(url, { cache: "no-store" });
+          const data = await res.json();
+          
+          if (data.cookie) {
+            console.log("Using cookie from:", url);
+            return data.cookie;
+          }
+          
+        } catch (e) {
+          console.log("Cookie failed:", url);
+        }
       }
       
-      return cookie;
+      return "";
     }
     
     /* CALL COOKIE */
@@ -212,13 +212,14 @@
       video.play().catch(() => {});
     } catch (e) {
       console.error("LOAD ERROR:", e);
-      alert("Stream not working / expired cookie");
+      alert("Stream not working / all cookies failed");
     }
     
     video.addEventListener("play", () => video.muted = false);
     
   })();
 </script>
+
 </body>
 
 </html>
